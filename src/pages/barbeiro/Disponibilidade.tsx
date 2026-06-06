@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
+import type { AxiosError } from 'axios'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Clock, Save } from 'lucide-react'
 import { api } from '@/services/api'
 import { Button, Card, CardBody, CardHeader, CardFooter } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
+import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
-import type { Disponibilidade } from '@/types'
+import type { Barbeiro } from '@/types'
 
 const DIAS = [
   { idx: 1, label: 'Segunda-feira' },
@@ -26,25 +28,51 @@ interface HorarioDia {
 
 type Grade = Record<number, HorarioDia>
 
-function buildGrade(disp: Disponibilidade[]): Grade {
+interface DisponibilidadeApi {
+  diaSemana: number
+  horaInicio: string
+  horaFim: string
+}
+
+function buildDefaultGrade(): Grade {
   const grade: Grade = {}
   DIAS.forEach(d => {
+    grade[d.idx] = { ativo: false, inicio: '08:00', fim: '18:00' }
+  })
+  return grade
+}
+
+function buildGrade(disp: DisponibilidadeApi[]): Grade {
+  const grade = buildDefaultGrade()
+  DIAS.forEach(d => {
     const item = disp.find(x => x.diaSemana === d.idx)
-    grade[d.idx] = item
-      ? { ativo: true, inicio: item.inicio, fim: item.fim }
-      : { ativo: false, inicio: '08:00', fim: '18:00' }
+    if (item) {
+      grade[d.idx] = { ativo: true, inicio: item.horaInicio, fim: item.horaFim }
+    }
   })
   return grade
 }
 
 export default function BarbeiroDisponibilidade() {
+  const { usuario } = useAuth()
   const qc = useQueryClient()
   const { success, error } = useToast()
-  const [grade, setGrade] = useState<Grade>({})
+  const [grade, setGrade] = useState<Grade>(() => buildDefaultGrade())
+
+  const { data: barbeiros, isLoading: isLoadingBarbeiro } = useQuery({
+    queryKey: ['barbeiro-disponibilidade-barbeiros', usuario?.id],
+    enabled: !!usuario,
+    queryFn:  () => api.get<Barbeiro[]>('/barbeiros').then(r => r.data),
+  })
+
+  const barbeiroId = barbeiros?.find(b =>
+    b.usuario.id === usuario?.id || b.usuario.email === usuario?.email
+  )?.id
 
   const { data, isLoading } = useQuery({
-    queryKey: ['barbeiro-disponibilidade'],
-    queryFn:  () => api.get<Disponibilidade[]>('/barbeiros/disponibilidade').then(r => r.data),
+    queryKey: ['barbeiro-disponibilidade', barbeiroId],
+    enabled: !!barbeiroId,
+    queryFn:  () => api.get<DisponibilidadeApi[]>(`/disponibilidade/${barbeiroId}`).then(r => r.data),
   })
 
   useEffect(() => {
@@ -53,20 +81,37 @@ export default function BarbeiroDisponibilidade() {
 
   const { mutate: salvar, isPending } = useMutation({
     mutationFn: () => {
+      if (!barbeiroId) {
+        throw new Error('Barbeiro não identificado.')
+      }
+
       const disponibilidades = Object.entries(grade)
         .filter(([, v]) => v.ativo)
-        .map(([dia, v]) => ({ diaSemana: Number(dia), inicio: v.inicio, fim: v.fim }))
-      return api.post('/barbeiros/disponibilidade', { disponibilidades })
+        .map(([dia, v]) => ({ diaSemana: Number(dia), horaInicio: v.inicio, horaFim: v.fim }))
+      return api.put(`/disponibilidade/${barbeiroId}`, { disponibilidades })
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['barbeiro-disponibilidade'] }); success('Disponibilidade salva!') },
-    onError:   () => error('Erro', 'Não foi possível salvar.'),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['barbeiro-disponibilidade', barbeiroId] })
+      success('Disponibilidade salva!')
+    },
+    onError:   (err) => {
+      const apiError = err as AxiosError<{ mensagem?: string }>
+      const mensagem = apiError.response?.data?.mensagem ?? 'Não foi possível salvar.'
+      error('Erro', mensagem)
+    },
   })
 
   const toggle = (idx: number) =>
-    setGrade(g => ({ ...g, [idx]: { ...g[idx], ativo: !g[idx].ativo } }))
+    setGrade(g => {
+      const atual = g[idx] ?? { ativo: false, inicio: '08:00', fim: '18:00' }
+      return { ...g, [idx]: { ...atual, ativo: !atual.ativo } }
+    })
 
   const setHorario = (idx: number, campo: 'inicio' | 'fim', val: string) =>
-    setGrade(g => ({ ...g, [idx]: { ...g[idx], [campo]: val } }))
+    setGrade(g => {
+      const atual = g[idx] ?? { ativo: false, inicio: '08:00', fim: '18:00' }
+      return { ...g, [idx]: { ...atual, [campo]: val } }
+    })
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto flex flex-col gap-6">
@@ -88,11 +133,15 @@ export default function BarbeiroDisponibilidade() {
         </CardHeader>
 
         <CardBody>
-          {isLoading ? (
+          {isLoading || isLoadingBarbeiro ? (
             <div className="flex flex-col gap-4">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="h-12 rounded-lg bg-surface-800 animate-shimmer" />
               ))}
+            </div>
+          ) : !barbeiroId ? (
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-200">
+              Não encontramos o seu cadastro de barbeiro nesta barbearia.
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -157,7 +206,8 @@ export default function BarbeiroDisponibilidade() {
         <CardFooter>
           <Button variant="primary" size="md" loading={isPending}
             leftIcon={<Save className="w-4 h-4" />}
-            onClick={() => salvar()}>
+            onClick={() => salvar()}
+            disabled={!barbeiroId}>
             Salvar disponibilidade
           </Button>
         </CardFooter>

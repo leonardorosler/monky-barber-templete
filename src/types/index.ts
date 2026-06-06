@@ -139,6 +139,7 @@ export interface Barbeiro {
   barbeariaId: string
   usuarioId: string
   foto: string | null
+  bio: string | null
   especialidades: string[]
   ativo: boolean
   usuario: Usuario

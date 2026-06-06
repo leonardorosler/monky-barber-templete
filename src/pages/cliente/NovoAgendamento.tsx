@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronRight, ChevronLeft, Scissors, User, Calendar, Clock } from 'lucide-react'
+import { Check, ChevronLeft, Scissors, User, Calendar, Clock } from 'lucide-react'
 import { api } from '@/services/api'
 import { Button, SkeletonCard } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
@@ -32,6 +32,20 @@ function formatDataExtenso(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', {
     weekday: 'long', day: '2-digit', month: 'long',
   })
+}
+
+function buildDateTime(data: string, hora: string) {
+  return `${data}T${hora}:00`
+}
+
+function addMinutesToDateTime(data: string, hora: string, minutos: number) {
+  const [ano, mes, dia] = data.split('-').map(Number)
+  const [hh, mm] = hora.split(':').map(Number)
+  const dt = new Date(ano, mes - 1, dia, hh, mm, 0, 0)
+  dt.setMinutes(dt.getMinutes() + minutos)
+
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:00`
 }
 
 // ─── Barra de progresso ───────────────────────────────────────────────────────
@@ -184,24 +198,33 @@ function StepBarbeiro({ onSelect }: { onSelect: (b: Barbeiro) => void }) {
 
 function StepHorario({
   servicoId, barbeiroId,
+  duracaoMinutos,
   onSelect,
 }: {
   servicoId: string
   barbeiroId: string
+  duracaoMinutos: number
   onSelect: (h: HorarioDisponivel) => void
 }) {
   const hoje = new Date()
-  const [data, setData] = useState(toDateInput(hoje))
+  const [dataSelecionada, setDataSelecionada] = useState(toDateInput(hoje))
 
-  const { data: horarios, isLoading } = useQuery({
-    queryKey: ['horarios', barbeiroId, servicoId, data],
+  interface HorariosDisponiveisResponse {
+    data: string
+    horarios: string[]
+  }
+
+  const { data: resposta, isLoading } = useQuery({
+    queryKey: ['horarios', barbeiroId, servicoId, dataSelecionada],
     queryFn:  () => api
-      .get<HorarioDisponivel[]>('/agendamentos/horarios-disponiveis', {
-        params: { barbeiroId, servicoId, data },
+      .get<HorariosDisponiveisResponse>('/agendamentos/horarios-disponiveis', {
+        params: { barbeiroId, servicoId, data: dataSelecionada },
       })
       .then(r => r.data),
-    enabled: !!data,
+    enabled: !!dataSelecionada,
   })
+
+  const horarios = resposta?.horarios ?? []
 
   return (
     <div>
@@ -212,9 +235,9 @@ function StepHorario({
         <label className="text-sm font-medium font-body text-surface-200 block mb-1.5">Data</label>
         <input
           type="date"
-          value={data}
+          value={dataSelecionada}
           min={toDateInput(hoje)}
-          onChange={e => setData(e.target.value)}
+          onChange={e => setDataSelecionada(e.target.value)}
           className={cn(
             'w-full sm:w-auto h-10 px-3 rounded-md border bg-surface-900',
             'border-surface-700 text-surface-100 font-body text-sm',
@@ -238,15 +261,20 @@ function StepHorario({
         </div>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          {horarios.map(h => (
-            <button key={h.inicio} onClick={() => onSelect(h)}
+          {horarios.map(hora => (
+            <button
+              key={hora}
+              onClick={() => onSelect({
+                inicio: buildDateTime(dataSelecionada, hora),
+                fim: addMinutesToDateTime(dataSelecionada, hora, duracaoMinutos),
+              })}
               className={cn(
                 'h-10 rounded-lg border text-sm font-body font-medium transition-all duration-150',
                 'bg-surface-900 border-surface-700 text-surface-300',
                 'hover:border-brand-500/60 hover:bg-brand-500/10 hover:text-brand-300',
               )}
             >
-              {formatHora(h.inicio)}
+              {hora}
             </button>
           ))}
         </div>
@@ -370,6 +398,7 @@ export default function NovoAgendamento() {
               <StepHorario
                 servicoId={servico.id}
                 barbeiroId={barbeiro.id}
+                duracaoMinutos={servico.duracao}
                 onSelect={h => { setHorario(h); setStep(4) }}
               />
             )}
