@@ -13,6 +13,7 @@ export const STORAGE_KEYS = {
   ACCESS_TOKEN:  'monky:accessToken',
   REFRESH_TOKEN: 'monky:refreshToken',
   BARBEARIA_ID:  'monky:barbeariaId',
+  USUARIO:       'monky:usuario',
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -23,6 +24,19 @@ export const storage = {
   getAccessToken:  () => localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN),
   getRefreshToken: () => localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN),
   getBarbeariaId:  () => localStorage.getItem(STORAGE_KEYS.BARBEARIA_ID),
+
+  getUsuario: <T>(): T | null => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.USUARIO)
+      return raw ? (JSON.parse(raw) as T) : null
+    } catch {
+      return null
+    }
+  },
+
+  setUsuario: (usuario: unknown) => {
+    localStorage.setItem(STORAGE_KEYS.USUARIO, JSON.stringify(usuario))
+  },
 
   setTokens: (access: string, refresh: string) => {
     localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN,  access)
@@ -36,11 +50,19 @@ export const storage = {
   clear: () => {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+    localStorage.removeItem(STORAGE_KEYS.USUARIO)
     // Mantém o barbeariaId — ele vem do slug, não da sessão do usuário
   },
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Rotas públicas — o interceptor nunca redireciona para /login nelas
+const PUBLIC_PATHS = ['/', '/login', '/cadastro', '/esqueceu-senha', '/redefinir-senha', '/pagamento']
+
+function isPublicPath() {
+  return PUBLIC_PATHS.some(p => window.location.pathname === p || window.location.pathname.startsWith(p + '/'))
+}
+
 // Flag interna: marca requisições de refresh para evitar loop infinito
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -125,14 +147,14 @@ api.interceptors.response.use(
     // Se a própria requisição de refresh retornou 401 → sessão inválida
     if (originalRequest.url === REFRESH_URL) {
       storage.clear()
-      window.location.href = '/login'
+      if (!isPublicPath()) window.location.href = '/login'
       return Promise.reject(error)
     }
 
     // Evita retry infinito — se essa req já passou pelo retry, rejeita
     if (originalRequest._isRetry) {
       storage.clear()
-      window.location.href = '/login'
+      if (!isPublicPath()) window.location.href = '/login'
       return Promise.reject(error)
     }
 
@@ -157,7 +179,7 @@ api.interceptors.response.use(
     if (!refreshToken) {
       isRefreshing = false
       storage.clear()
-      window.location.href = '/login'
+      if (!isPublicPath()) window.location.href = '/login'
       return Promise.reject(error)
     }
 
@@ -176,7 +198,7 @@ api.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError, null)
       storage.clear()
-      window.location.href = '/login'
+      if (!isPublicPath()) window.location.href = '/login'
       return Promise.reject(refreshError)
     } finally {
       isRefreshing = false

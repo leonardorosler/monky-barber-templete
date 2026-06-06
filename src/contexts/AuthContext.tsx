@@ -24,9 +24,9 @@ interface AuthContextValue {
   isAutenticado: boolean
   isCarregando: boolean
   papel: Papel | null
-  login: (dados: LoginInput) => Promise<void>
-  cadastro: (dados: CadastroInput) => Promise<void>
-  logout: () => void
+  login:   (dados: LoginInput)   => Promise<UsuarioResumido>
+  cadastro:(dados: CadastroInput)=> Promise<UsuarioResumido>
+  logout:  () => void
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,67 +39,53 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 // Provider
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface AuthProviderProps {
-  children: ReactNode
-}
-
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [usuario, setUsuario]       = useState<UsuarioResumido | null>(null)
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [usuario, setUsuario]   = useState<UsuarioResumido | null>(null)
   const [isCarregando, setIsCarregando] = useState(true)
 
-  // ── Restaura sessão ao montar ────────────────────────────────────────────
+  // ── Restauração de sessão ─────────────────────────────────────────────────
+  // Lê o usuário do localStorage — sem chamada de API.
+  // O token será validado naturalmente na primeira requisição autenticada.
+  // Se estiver expirado, o interceptor tentará o refresh automaticamente.
+  // Só redireciona para /login quando o refresh também falhar — e apenas
+  // se o usuário estiver em uma rota protegida que de fato exigiu o token.
   useEffect(() => {
-    const accessToken  = storage.getAccessToken()
+    const accessToken = storage.getAccessToken()
     const refreshToken = storage.getRefreshToken()
 
-    if (!accessToken || !refreshToken) {
-      setIsCarregando(false)
-      return
+    if (accessToken && refreshToken) {
+      const salvo = storage.getUsuario<UsuarioResumido>()
+      if (salvo) setUsuario(salvo)
     }
 
-    // Valida o token buscando os dados do usuário autenticado
-    api
-      .get<UsuarioResumido>('/auth/me')
-      .then(({ data }) => setUsuario(data))
-      .catch(() => {
-        // Token expirado/inválido — interceptor já tentou refresh;
-        // se chegou aqui é porque falhou → limpa e começa sem sessão
-        storage.clear()
-      })
-      .finally(() => setIsCarregando(false))
+    setIsCarregando(false)
   }, [])
 
-  // ── Login ────────────────────────────────────────────────────────────────
-  const login = useCallback(async (dados: LoginInput) => {
+  // ── Login ─────────────────────────────────────────────────────────────────
+  const login = useCallback(async (dados: LoginInput): Promise<UsuarioResumido> => {
     const { data } = await api.post<AuthResponse>('/auth/login', dados)
     storage.setTokens(data.accessToken, data.refreshToken)
+    storage.setUsuario(data.usuario)
     setUsuario(data.usuario)
+    return data.usuario
   }, [])
 
-  // ── Cadastro ─────────────────────────────────────────────────────────────
-  const cadastro = useCallback(async (dados: CadastroInput) => {
+  // ── Cadastro ──────────────────────────────────────────────────────────────
+  const cadastro = useCallback(async (dados: CadastroInput): Promise<UsuarioResumido> => {
     const { data } = await api.post<AuthResponse>('/auth/cadastro', dados)
     storage.setTokens(data.accessToken, data.refreshToken)
+    storage.setUsuario(data.usuario)
     setUsuario(data.usuario)
+    return data.usuario
   }, [])
 
-  // ── Logout ───────────────────────────────────────────────────────────────
+  // ── Logout ────────────────────────────────────────────────────────────────
   const logout = useCallback(() => {
-    // Fire-and-forget — invalida o refresh token no servidor
     api.post('/auth/logout').catch(() => null)
     storage.clear()
     setUsuario(null)
     window.location.href = '/login'
   }, [])
-
-  // ── Loading inicial ───────────────────────────────────────────────────────
-  if (isCarregando) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-surface-950">
-        <div className="w-8 h-8 rounded-full border-4 border-brand-500 border-t-transparent animate-spin" />
-      </div>
-    )
-  }
 
   return (
     <AuthContext.Provider
@@ -124,8 +110,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext)
-  if (!ctx) {
-    throw new Error('useAuth deve ser usado dentro de <AuthProvider>')
-  }
+  if (!ctx) throw new Error('useAuth deve ser usado dentro de <AuthProvider>')
   return ctx
 }
