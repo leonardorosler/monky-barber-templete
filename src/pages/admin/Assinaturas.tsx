@@ -71,7 +71,9 @@ export default function AdminAssinaturas() {
         <h1 className="text-2xl font-display font-bold text-surface-50 flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-brand-400" /> Assinaturas
         </h1>
-        <p className="text-surface-400 font-body text-sm mt-0.5">{data?.length ?? 0} assinaturas no total</p>
+        <p className="text-surface-400 font-body text-sm mt-0.5">
+          {data?.length ?? 0} assinaturas no total. O plano do cliente é definido pela equipe.
+        </p>
       </div>
 
       <div className="flex gap-2 flex-wrap">

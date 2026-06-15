@@ -84,15 +84,15 @@ export default function Login() {
               <span className="text-gradient-brand">hábito.</span>
             </h2>
             <p className="text-surface-400 font-body leading-relaxed">
-              Acesse sua conta para gerenciar seus agendamentos,
-              acompanhar sua assinatura e muito mais.
+              Acesse sua conta para gerenciar seus agendamentos
+              e acompanhar seu plano atribuído pela equipe.
             </p>
 
             <div className="mt-12 flex flex-col gap-4">
               {[
                 'Agendamento em poucos cliques',
                 'Histórico completo de atendimentos',
-                'Controle de assinatura em tempo real',
+                'Plano atribuído pela equipe',
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3">
                   <div className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />

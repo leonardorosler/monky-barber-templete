@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, type Variants } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -39,19 +39,19 @@ const sizeStyles: Record<ModalSize, string> = {
 // Animações
 // ─────────────────────────────────────────────────────────────────────────────
 
-const overlayVariants = {
+const overlayVariants: Variants = {
   hidden:  { opacity: 0 },
   visible: { opacity: 1 },
   exit:    { opacity: 0 },
 }
 
-const panelVariants = {
+const panelVariants: Variants = {
   hidden:  { opacity: 0, scale: 0.95, y: 8 },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { type: 'spring', stiffness: 400, damping: 30 },
+    transition: { type: 'spring' as const, stiffness: 400, damping: 30 },
   },
   exit: {
     opacity: 0,

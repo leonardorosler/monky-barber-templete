@@ -4,8 +4,7 @@ import { motion } from 'framer-motion'
 import { CalendarDays, CalendarPlus, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { api } from '@/services/api'
-import { Button, Table, BadgeAgendamento, Modal } from '@/components/ui'
-import type { TableColumn } from '@/components/ui'
+import { Button, Table, BadgeAgendamento, Modal, TableColumn } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
 import type { Agendamento, StatusAgendamento } from '@/types'
 
@@ -32,7 +31,7 @@ export default function ClienteAgendamentos() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['cliente-agendamentos-lista'],
-    queryFn:  () => api.get<Agendamento[]>('/agendamentos/cliente').then(r => r.data),
+    queryFn:  () => api.get<Agendamento[]>('/agendamentos/meus').then(r => r.data),
   })
 
   const { mutate: cancelar, isPending } = useMutation({
@@ -53,7 +52,7 @@ export default function ClienteAgendamentos() {
   const columns: TableColumn<Agendamento>[] = [
     {
       key: 'servico', header: 'Serviço',
-      render: (a: Agendamento) => (
+      render: (a) => (
         <div>
           <p className="font-medium text-surface-100">{a.servico.nome}</p>
           <p className="text-xs text-surface-500">com {a.barbeiro.usuario.nome}</p>
@@ -62,13 +61,13 @@ export default function ClienteAgendamentos() {
     },
     {
       key: 'inicio', header: 'Data e hora',
-      render: (a: Agendamento) => (
+      render: (a) => (
         <span className="text-surface-300 tabular-nums">{formatDateTime(a.inicio)}</span>
       ),
     },
     {
       key: 'preco', header: 'Valor', align: 'center',
-      render: (a: Agendamento) => (
+      render: (a) => (
         <span className="text-brand-400 font-medium">
           R$ {Number(a.servico.preco).toFixed(2).replace('.', ',')}
         </span>
@@ -76,11 +75,11 @@ export default function ClienteAgendamentos() {
     },
     {
       key: 'status', header: 'Status', align: 'center',
-      render: (a: Agendamento) => <BadgeAgendamento status={a.status} />,
+      render: (a) => <BadgeAgendamento status={a.status} />,
     },
     {
       key: 'acoes', header: '', align: 'right',
-      render: (a: Agendamento) => ['PENDENTE', 'CONFIRMADO'].includes(a.status) ? (
+      render: (a) => ['PENDENTE', 'CONFIRMADO'].includes(a.status) ? (
         <Button
           variant="ghost" size="sm"
           leftIcon={<X className="w-3.5 h-3.5 text-red-400" />}

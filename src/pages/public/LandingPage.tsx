@@ -373,9 +373,9 @@ function Planos() {
   return (
     <Section id="planos" className="max-w-6xl mx-auto">
       <SectionHeader
-        eyebrow="Planos mensais"
-        title={<>Assine e economize<br />todo mês</>}
-        description="Tenha acesso ilimitado aos melhores serviços com preço fixo. Cancele quando quiser."
+        eyebrow="Planos da barbearia"
+        title={<>Seu plano é<br />definido pela equipe</>}
+        description="A barbearia atribui o plano ideal ao seu perfil. O foco continua sendo agendamentos e atendimento."
       />
 
       {isLoading ? (
@@ -429,10 +429,10 @@ function Planos() {
                     ))}
                   </ul>
                 )}
-                <Button variant={destaque ? 'primary' : 'outline'} size="md" fullWidth
+                  <Button variant={destaque ? 'primary' : 'outline'} size="md" fullWidth
                   onClick={() => window.location.href = '/cadastro'}>
-                  Assinar agora
-                </Button>
+                  Criar conta e agendar
+                  </Button>
               </motion.div>
             )
           })}

@@ -7,7 +7,7 @@ import { Button, BadgeAgendamento } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
 import type { Agendamento, StatusAgendamento } from '@/types'
-import { LABEL_STATUS_AGENDAMENTO } from '@/types'
+// import { LABEL_STATUS_AGENDAMENTO } from '@/types'
 
 const STATUS_ACOES: { status: StatusAgendamento; label: string; variant: string }[] = [
   { status: 'CONFIRMADO',    label: 'Confirmar',         variant: 'bg-blue-500/15 text-blue-400 border-blue-500/30 hover:bg-blue-500/25'   },
@@ -23,9 +23,9 @@ function toInput(date: Date) { return date.toISOString().split('T')[0] }
 function formatHora(iso: string) {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
-function nomeDia(date: Date) {
-  return date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })
-}
+// function nomeDia(date: Date) {
+//   return date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })
+// }
 
 export default function BarbeiroAgenda() {
   const qc = useQueryClient()
@@ -38,7 +38,7 @@ export default function BarbeiroAgenda() {
 
   const { data: agendamentos, isLoading } = useQuery({
     queryKey: ['barbeiro-agenda', diaSelecionado],
-    queryFn:  () => api.get<Agendamento[]>('/agendamentos/barbeiro', { params: { data: diaSelecionado } }).then(r => r.data),
+    queryFn:  () => api.get<Agendamento[]>('/agendamentos/agenda', { params: { data: diaSelecionado } }).then(r => r.data),
   })
 
   const { mutate: atualizar } = useMutation({

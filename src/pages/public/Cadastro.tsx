@@ -132,8 +132,8 @@ export default function Cadastro() {
               <span className="text-gradient-brand">do seu estilo.</span>
             </h2>
             <p className="text-surface-400 font-body leading-relaxed">
-              Crie sua conta em segundos e tenha acesso a agendamentos,
-              histórico completo e planos exclusivos.
+              Crie sua conta em segundos e tenha acesso a agendamentos
+              e histórico completo.
             </p>
 
             <div className="mt-12 flex flex-col gap-5">

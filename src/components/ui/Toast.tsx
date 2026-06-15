@@ -45,7 +45,7 @@ interface ToastContextValue {
 
 const variantConfig: Record<
   ToastVariant,
-  { icon: typeof CheckCircle2; container: string; icon: string; progress: string }
+  { icon: typeof CheckCircle2; container: string; iconClass: string; progress: string }
 > = {
   success: {
     icon:      CheckCircle2,

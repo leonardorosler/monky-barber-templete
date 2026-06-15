@@ -27,12 +27,16 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          query:  ['@tanstack/react-query'],
-          forms:  ['react-hook-form', '@hookform/resolvers', 'zod'],
-          ui:     ['framer-motion', 'lucide-react'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+
+          if (id.includes('react-dom') || id.includes('react')) return 'vendor'
+          if (id.includes('react-router-dom')) return 'router'
+          if (id.includes('@tanstack/react-query')) return 'query'
+          if (id.includes('react-hook-form') || id.includes('@hookform/resolvers') || id.includes('/zod/')) return 'forms'
+          if (id.includes('framer-motion') || id.includes('lucide-react')) return 'ui'
+
+          return 'vendor'
         },
       },
     },

@@ -25,7 +25,7 @@ export default function ClienteDashboard() {
 
   const { data: agendamentos, isLoading: loadingAg } = useQuery({
     queryKey: ['cliente-agendamentos'],
-    queryFn:  () => api.get<Agendamento[]>('/agendamentos/cliente').then(r => r.data),
+    queryFn:  () => api.get<Agendamento[]>('/agendamentos/meus').then(r => r.data),
   })
 
   const { data: assinatura, isLoading: loadingAs } = useQuery({
@@ -76,7 +76,7 @@ export default function ClienteDashboard() {
             'hover:border-surface-700 hover:shadow-card-hover transition-all duration-300',
           )}>
             <CreditCard className="w-6 h-6 text-brand-400 mb-3" />
-            <p className="font-display font-bold text-surface-50 text-lg">Minha assinatura</p>
+            <p className="font-display font-bold text-surface-50 text-lg">Meu plano</p>
             {loadingAs ? (
               <p className="text-surface-500 font-body text-sm mt-0.5">Carregando...</p>
             ) : assinatura ? (
@@ -84,7 +84,7 @@ export default function ClienteDashboard() {
                 <BadgeAssinatura status={assinatura.status} dot />
               </div>
             ) : (
-              <p className="text-surface-500 font-body text-sm mt-0.5">Nenhum plano ativo</p>
+              <p className="text-surface-500 font-body text-sm mt-0.5">Nenhum plano atribuído</p>
             )}
             <ChevronRight className="w-4 h-4 text-surface-600 absolute right-4 top-1/2 -translate-y-1/2 group-hover:right-3 transition-all" />
           </div>

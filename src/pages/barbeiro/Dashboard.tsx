@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { CalendarDays, Clock, CheckCircle2, XCircle, ChevronRight } from 'lucide-react'
+import { CalendarDays, Clock, CheckCircle2, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/services/api'
@@ -27,12 +27,12 @@ export default function BarbeiroDashboard() {
 
   const { data: agendamentos, isLoading } = useQuery({
     queryKey: ['barbeiro-agendamentos-hoje'],
-    queryFn:  () => api.get<Agendamento[]>('/agendamentos/barbeiro', { params: { data: hoje } }).then(r => r.data),
+    queryFn:  () => api.get<Agendamento[]>('/agendamentos/agenda', { params: { data: hoje } }).then(r => r.data),
   })
 
   const { data: semana } = useQuery({
     queryKey: ['barbeiro-agendamentos-semana'],
-    queryFn:  () => api.get<Agendamento[]>('/agendamentos/barbeiro').then(r => r.data),
+    queryFn:  () => api.get<Agendamento[]>('/agendamentos/agenda').then(r => r.data),
   })
 
   const lista     = agendamentos ?? []
@@ -64,7 +64,7 @@ export default function BarbeiroDashboard() {
           { label: 'Pendentes',  value: pendentes,   icon: Clock,         color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/20' },
           { label: 'Confirmados',value: confirmados,  icon: CalendarDays,  color: 'text-blue-400',   bg: 'bg-blue-500/10 border-blue-500/20'     },
           { label: 'Concluídos', value: concluidos,   icon: CheckCircle2,  color: 'text-green-400',  bg: 'bg-green-500/10 border-green-500/20'   },
-        ].map((stat, i) => {
+        ].map((stat) => {
           const Icon = stat.icon
           return (
             <div key={stat.label} className="bg-surface-900 border border-surface-800 rounded-xl p-4">

@@ -39,7 +39,7 @@ const NAV_POR_PAPEL: Record<Papel, NavItem[]> = {
     { label: 'Dashboard',       to: '/cliente/dashboard',        icon: LayoutDashboard },
     { label: 'Agendamentos',    to: '/cliente/agendamentos',     icon: CalendarDays    },
     { label: 'Novo Agendamento',to: '/cliente/novo-agendamento', icon: CalendarPlus    },
-    { label: 'Assinatura',      to: '/cliente/assinatura',       icon: CreditCard      },
+    { label: 'Meu Plano',       to: '/cliente/assinatura',       icon: CreditCard      },
     { label: 'Meu Perfil',      to: '/cliente/perfil',           icon: User            },
   ],
   BARBEIRO: [
@@ -205,7 +205,7 @@ function MobileHeader({
   onMenuOpen: () => void
 }) {
   const { barbearia }      = useBarbearia()
-  const { usuario, papel } = useAuth()
+  const { usuario } = useAuth()
 
   return (
     <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-14 flex items-center justify-between px-4 bg-surface-950/95 backdrop-blur-md border-b border-surface-800">
