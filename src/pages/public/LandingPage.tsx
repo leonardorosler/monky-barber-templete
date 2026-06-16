@@ -169,8 +169,7 @@ function Hero() {
             transition={{ duration: 0.6, delay: 0.45 }}
             className="text-surface-300 font-body text-lg leading-relaxed mb-10 max-w-md"
           >
-            Cortes precisos, atendimento exclusivo. Reserve seu horário e
-            experimente o que há de melhor em cuidados masculinos.
+            Teste de descrição da barbearia, aqui vai o slogan ou frase escolhida pela barbearia.
           </motion.p>
 
           <motion.div
