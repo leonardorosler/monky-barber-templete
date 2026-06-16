@@ -30,7 +30,7 @@ export default function ClienteDashboard() {
 
   const { data: assinatura, isLoading: loadingAs } = useQuery({
     queryKey: ['cliente-assinatura'],
-    queryFn:  () => api.get<Assinatura>('/assinaturas/minha').then(r => r.data).catch(() => null),
+    queryFn:  () => api.get<Assinatura[]>('/assinaturas/minhas').then(r => r.data[0] ?? null).catch(() => null),
   })
 
   const proximos = (agendamentos ?? [])

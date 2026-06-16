@@ -140,7 +140,7 @@ export interface Barbeiro {
   usuarioId: string
   foto: string | null
   bio: string | null
-  especialidades: string[]
+  especialidades?: string[]
   ativo: boolean
   usuario: Usuario
   criadoEm: string
@@ -157,14 +157,14 @@ export interface CriarBarbeiroInput {
   nome: string
   email: string
   senha: string
-  telefone?: string
   foto?: string
-  especialidades?: string[]
+  bio?: string
 }
 
 export interface AtualizarBarbeiroInput {
+  nome?: string
   foto?: string
-  especialidades?: string[]
+  bio?: string
   ativo?: boolean
 }
 
@@ -172,16 +172,16 @@ export interface AtualizarBarbeiroInput {
 
 export interface DisponibilidadeDia {
   diaSemana: number  // 0 = domingo, 6 = sábado
-  inicio: string     // "08:00"
-  fim: string        // "18:00"
+  horaInicio: string // "08:00"
+  horaFim: string    // "18:00"
 }
 
 export interface Disponibilidade {
   id: string
   barbeiroId: string
   diaSemana: number
-  inicio: string
-  fim: string
+  horaInicio: string
+  horaFim: string
 }
 
 export interface DefinirDisponibilidadeInput {
@@ -259,6 +259,7 @@ export interface Cliente {
   id: string
   barbeariaId: string
   usuarioId: string
+  telefone?: string | null
   usuario: Usuario
   criadoEm: string
   atualizadoEm: string

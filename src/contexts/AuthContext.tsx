@@ -81,7 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── Logout ────────────────────────────────────────────────────────────────
   const logout = useCallback(() => {
-    api.post('/auth/logout').catch(() => null)
+    const refreshToken = storage.getRefreshToken()
+    if (refreshToken) {
+      api.post('/auth/logout', { refreshToken }).catch(() => null)
+    }
     storage.clear()
     setUsuario(null)
     window.location.href = '/login'

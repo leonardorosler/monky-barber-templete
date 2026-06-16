@@ -296,7 +296,7 @@ function Servicos() {
 function Barbeiros() {
   const { data, isLoading } = useQuery({
     queryKey: ['barbeiros-publicos'],
-    queryFn:  () => api.get<Barbeiro[]>('/barbeiros').then((r) => r.data),
+    queryFn:  () => api.get<Barbeiro[]>('/barbeiros').then((r) => r.data).catch(() => []),
   })
 
   const barbeiros = (data ?? []).filter((b) => b.ativo)

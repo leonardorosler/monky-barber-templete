@@ -2,13 +2,14 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { User, Save, LogOut } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/services/api'
 import { useToast } from '@/components/ui/Toast'
 import { Button, Input, Card, CardBody, CardHeader, CardFooter } from '@/components/ui'
+import type { Cliente } from '@/types'
 
 const schema = z.object({
   nome:     z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
@@ -28,7 +29,13 @@ const fadeUp = {
 
 export default function ClientePerfil() {
   const { usuario, logout } = useAuth()
+  const qc = useQueryClient()
   const { success, error }  = useToast()
+
+  const { data: perfil } = useQuery({
+    queryKey: ['cliente-perfil'],
+    queryFn: () => api.get<Cliente>('/clientes/perfil').then(r => r.data),
+  })
 
   const {
     register,
@@ -41,15 +48,18 @@ export default function ClientePerfil() {
   useEffect(() => {
     if (usuario) {
       reset({
-        nome:     usuario.nome     ?? '',
-        telefone: '',
+        nome: perfil?.usuario.nome ?? usuario.nome ?? '',
+        telefone: perfil?.telefone ?? perfil?.usuario.telefone ?? '',
       })
     }
-  }, [usuario, reset])
+  }, [perfil, usuario, reset])
 
   const { mutate: salvar } = useMutation({
     mutationFn: (data: FormData) => api.patch('/clientes/perfil', data),
-    onSuccess: () => success('Perfil atualizado!'),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['cliente-perfil'] })
+      success('Perfil atualizado!')
+    },
     onError:   () => error('Erro', 'Não foi possível salvar. Tente novamente.'),
   })
 
