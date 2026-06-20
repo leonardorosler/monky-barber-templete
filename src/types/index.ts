@@ -83,6 +83,7 @@ export interface Usuario {
   email: string
   telefone: string | null
   papel: Papel
+  ativo?: boolean
   criadoEm: string
   atualizadoEm: string
 }
@@ -141,7 +142,7 @@ export interface Barbeiro {
   foto: string | null
   bio: string | null
   especialidades?: string[]
-  ativo: boolean
+  ativo?: boolean
   usuario: Usuario
   criadoEm: string
   atualizadoEm: string

@@ -9,6 +9,10 @@ import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
 import type { Servico, Barbeiro, HorarioDisponivel } from '@/types'
 
+function barbeiroEstaAtivo(barbeiro: Barbeiro) {
+  return barbeiro.usuario.ativo ?? barbeiro.ativo ?? true
+}
+
 // ─── Steps ───────────────────────────────────────────────────────────────────
 
 const STEPS = [
@@ -145,7 +149,7 @@ function StepServico({ onSelect }: { onSelect: (s: Servico) => void }) {
 function StepBarbeiro({ onSelect }: { onSelect: (b: Barbeiro) => void }) {
   const { data, isLoading } = useQuery({
     queryKey: ['barbeiros-ag'],
-    queryFn:  () => api.get<Barbeiro[]>('/barbeiros').then(r => r.data.filter(b => b.ativo)),
+    queryFn:  () => api.get<Barbeiro[]>('/barbeiros').then(r => r.data.filter(barbeiroEstaAtivo)),
   })
 
   return (

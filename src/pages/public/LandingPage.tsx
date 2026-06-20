@@ -10,6 +10,10 @@ import { Button, SkeletonCard, Badge } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type { Servico, Barbeiro, Plano } from '@/types'
 
+function barbeiroEstaAtivo(barbeiro: Barbeiro) {
+  return barbeiro.usuario.ativo ?? barbeiro.ativo ?? true
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook reveal
 // ─────────────────────────────────────────────────────────────────────────────
@@ -298,7 +302,7 @@ function Barbeiros() {
     queryFn:  () => api.get<Barbeiro[]>('/barbeiros').then((r) => r.data).catch(() => []),
   })
 
-  const barbeiros = (data ?? []).filter((b) => b.ativo)
+  const barbeiros = (data ?? []).filter(barbeiroEstaAtivo)
 
   return (
     <Section id="barbeiros" className="max-w-6xl mx-auto">

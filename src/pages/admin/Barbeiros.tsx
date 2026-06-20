@@ -28,6 +28,10 @@ const schemaEditar = z.object({
 type FormCriar = z.infer<typeof schemaCriar>
 type FormEditar = z.infer<typeof schemaEditar>
 
+function barbeiroEstaAtivo(barbeiro: Barbeiro) {
+  return barbeiro.usuario.ativo ?? barbeiro.ativo ?? true
+}
+
 export default function AdminBarbeiros() {
   const qc = useQueryClient()
   const { success, error } = useToast()
@@ -50,7 +54,7 @@ export default function AdminBarbeiros() {
         nome: barbeiro.usuario.nome,
         foto: barbeiro.foto ?? '',
         bio: barbeiro.bio ?? '',
-        ativo: barbeiro.ativo,
+        ativo: barbeiroEstaAtivo(barbeiro),
       })
     } else {
       resetC({ nome: '', email: '', senha: '', foto: '', bio: '' })
@@ -122,7 +126,10 @@ export default function AdminBarbeiros() {
       key: 'ativo',
       header: 'Status',
       align: 'center',
-      render: (b: Barbeiro) => <Badge variant={b.ativo ? 'success' : 'muted'} dot>{b.ativo ? 'Ativo' : 'Inativo'}</Badge>,
+      render: (b: Barbeiro) => {
+        const ativo = barbeiroEstaAtivo(b)
+        return <Badge variant={ativo ? 'success' : 'muted'} dot>{ativo ? 'Ativo' : 'Inativo'}</Badge>
+      },
     },
     {
       key: 'acoes',
