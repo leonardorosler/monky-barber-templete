@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/services/api'
 import { Button, Card, CardBody, CardHeader, BadgeAgendamento, SkeletonCard } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import { compareIsoDateTime, formatIsoDate, formatIsoTime, isoDateKey, toDateInputValue } from '@/lib/date'
 import type { Agendamento } from '@/types'
 
 const fadeUp = {
@@ -14,16 +15,16 @@ const fadeUp = {
 }
 
 function formatHora(iso: string) {
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return formatIsoTime(iso)
 }
 function formatData(iso: string) {
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+  return formatIsoDate(iso)
 }
 
 export default function BarbeiroDashboard() {
   const { usuario } = useAuth()
 
-  const hoje = new Date().toISOString().split('T')[0]
+  const hoje = toDateInputValue()
 
   const { data: agendamentos, isLoading } = useQuery({
     queryKey: ['barbeiro-agendamentos-hoje'],
@@ -42,7 +43,7 @@ export default function BarbeiroDashboard() {
 
   const proximos = lista
     .filter(a => ['PENDENTE', 'CONFIRMADO'].includes(a.status))
-    .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
+    .sort((a, b) => compareIsoDateTime(a.inicio, b.inicio))
 
   const primeiroNome = usuario?.nome?.split(' ')[0] ?? 'Barbeiro'
 
@@ -123,7 +124,7 @@ export default function BarbeiroDashboard() {
 
       {/* Próximos dias */}
       {(semana ?? []).filter(a => {
-        const d = new Date(a.inicio).toISOString().split('T')[0]
+        const d = isoDateKey(a.inicio)
         return d > hoje && ['PENDENTE','CONFIRMADO'].includes(a.status)
       }).length > 0 && (
         <motion.div variants={fadeUp} custom={3}>
@@ -135,10 +136,10 @@ export default function BarbeiroDashboard() {
               <div className="flex flex-col gap-3">
                 {(semana ?? [])
                   .filter(a => {
-                    const d = new Date(a.inicio).toISOString().split('T')[0]
+                    const d = isoDateKey(a.inicio)
                     return d > hoje && ['PENDENTE','CONFIRMADO'].includes(a.status)
                   })
-                  .sort((a,b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
+                  .sort((a,b) => compareIsoDateTime(a.inicio, b.inicio))
                   .slice(0, 5)
                   .map(ag => (
                     <div key={ag.id} className="flex items-center gap-3 py-2 border-b border-surface-800 last:border-0">

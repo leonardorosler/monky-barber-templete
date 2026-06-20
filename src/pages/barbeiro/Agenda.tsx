@@ -6,6 +6,7 @@ import { api } from '@/services/api'
 import { Button, BadgeAgendamento } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
+import { compareIsoDateTime, formatIsoTime, toDateInputValue } from '@/lib/date'
 import type { Agendamento, StatusAgendamento } from '@/types'
 // import { LABEL_STATUS_AGENDAMENTO } from '@/types'
 
@@ -19,9 +20,9 @@ const STATUS_ACOES: { status: StatusAgendamento; label: string; variant: string 
 function addDias(date: Date, n: number) {
   const d = new Date(date); d.setDate(d.getDate() + n); return d
 }
-function toInput(date: Date) { return date.toISOString().split('T')[0] }
+function toInput(date: Date) { return toDateInputValue(date) }
 function formatHora(iso: string) {
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return formatIsoTime(iso)
 }
 // function nomeDia(date: Date) {
 //   return date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })
@@ -48,7 +49,7 @@ export default function BarbeiroAgenda() {
     onError:   () => error('Erro', 'Não foi possível atualizar.'),
   })
 
-  const sorted = (agendamentos ?? []).sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
+  const sorted = (agendamentos ?? []).sort((a, b) => compareIsoDateTime(a.inicio, b.inicio))
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto flex flex-col gap-6">

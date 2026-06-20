@@ -6,13 +6,11 @@ import { Link } from 'react-router-dom'
 import { api } from '@/services/api'
 import { Button, Table, BadgeAgendamento, Modal, TableColumn } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
+import { compareIsoDateTime, formatIsoDateTime } from '@/lib/date'
 import type { Agendamento, StatusAgendamento } from '@/types'
 
 function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString('pt-BR', {
-    day: '2-digit', month: '2-digit', year: '2-digit',
-    hour: '2-digit', minute: '2-digit',
-  })
+  return formatIsoDateTime(iso)
 }
 
 const FILTROS: { label: string; value: StatusAgendamento | 'TODOS' }[] = [
@@ -47,7 +45,7 @@ export default function ClienteAgendamentos() {
   })
 
   const lista = (data ?? []).filter(a => filtro === 'TODOS' || a.status === filtro)
-    .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime())
+    .sort((a, b) => compareIsoDateTime(b.inicio, a.inicio))
 
   const columns: TableColumn<Agendamento>[] = [
     {

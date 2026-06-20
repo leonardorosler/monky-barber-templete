@@ -7,6 +7,7 @@ import {
 import { api } from '@/services/api'
 import { Card, CardBody, CardHeader, SkeletonCard, BadgeAgendamento } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import { compareIsoDateTime, formatIsoTime, toDateInputValue } from '@/lib/date'
 import type { Dashboard, Agendamento } from '@/types'
 
 const fadeUp = {
@@ -18,7 +19,7 @@ function formatMoeda(valor: string | number) {
   return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 function formatHora(iso: string) {
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return formatIsoTime(iso)
 }
 // function formatData(iso: string) {
 //   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
@@ -78,12 +79,12 @@ export default function AdminDashboard() {
 
   const { data: agendamentos } = useQuery({
     queryKey: ['admin-agendamentos-hoje'],
-    queryFn:  () => api.get<Agendamento[]>('/agendamentos', { params: { data: new Date().toISOString().split('T')[0] } }).then(r => r.data),
+    queryFn:  () => api.get<Agendamento[]>('/agendamentos', { params: { data: toDateInputValue() } }).then(r => r.data),
   })
 
   const proximos = (agendamentos ?? [])
     .filter(a => ['PENDENTE', 'CONFIRMADO'].includes(a.status))
-    .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
+    .sort((a, b) => compareIsoDateTime(a.inicio, b.inicio))
     .slice(0, 5)
 
   return (

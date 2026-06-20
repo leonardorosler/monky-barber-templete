@@ -7,6 +7,7 @@ import { api } from '@/services/api'
 import { Button, SkeletonCard } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
+import { formatIsoDateLong, formatIsoTime, toDateInputValue } from '@/lib/date'
 import type { Servico, Barbeiro, HorarioDisponivel } from '@/types'
 
 function barbeiroEstaAtivo(barbeiro: Barbeiro) {
@@ -25,17 +26,15 @@ const STEPS = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function toDateInput(date: Date) {
-  return date.toISOString().split('T')[0]
+  return toDateInputValue(date)
 }
 
 function formatHora(iso: string) {
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return formatIsoTime(iso)
 }
 
 function formatDataExtenso(iso: string) {
-  return new Date(iso).toLocaleDateString('pt-BR', {
-    weekday: 'long', day: '2-digit', month: 'long',
-  })
+  return formatIsoDateLong(iso)
 }
 
 function buildDateTime(data: string, hora: string) {

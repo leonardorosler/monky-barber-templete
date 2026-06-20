@@ -5,13 +5,14 @@ import { CalendarDays } from 'lucide-react'
 import { api } from '@/services/api'
 import { Table, BadgeAgendamento, TableColumn } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
+import { formatIsoDateTime } from '@/lib/date'
 import type { Agendamento, StatusAgendamento} from '@/types'
 import { LABEL_STATUS_AGENDAMENTO } from '@/types'
 
 const STATUS_OPTIONS: StatusAgendamento[] = ['PENDENTE','CONFIRMADO','CONCLUIDO','CANCELADO','NAO_COMPARECEU']
 
 function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' })
+  return formatIsoDateTime(iso)
 }
 
 export default function AdminAgendamentos() {

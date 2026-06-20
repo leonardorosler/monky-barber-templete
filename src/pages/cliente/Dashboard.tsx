@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/services/api'
 import { Button, Card, BadgeAgendamento, BadgeAssinatura, SkeletonCard } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import { compareIsoDateTime, formatIsoDateMonthShort, formatIsoTime } from '@/lib/date'
 import type { Agendamento, Assinatura } from '@/types'
 
 const fadeUp = {
@@ -14,10 +15,10 @@ const fadeUp = {
 }
 
 function formatData(iso: string) {
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+  return formatIsoDateMonthShort(iso)
 }
 function formatHora(iso: string) {
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return formatIsoTime(iso)
 }
 
 export default function ClienteDashboard() {
@@ -35,7 +36,7 @@ export default function ClienteDashboard() {
 
   const proximos = (agendamentos ?? [])
     .filter(a => ['PENDENTE', 'CONFIRMADO'].includes(a.status))
-    .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
+    .sort((a, b) => compareIsoDateTime(a.inicio, b.inicio))
     .slice(0, 3)
 
   const primeiroNome = usuario?.nome?.split(' ')[0] ?? 'Cliente'
