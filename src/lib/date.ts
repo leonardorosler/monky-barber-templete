@@ -1,56 +1,79 @@
-function parseIsoParts(iso: string) {
-  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/)
+const BUSINESS_TIME_ZONE = import.meta.env.VITE_BUSINESS_TIME_ZONE || 'America/Sao_Paulo'
 
-  if (!match) return null
+function dateFromValue(value: string) {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
 
-  const [, year, month, day, hour, minute] = match
+function businessParts(value: string) {
+  const date = dateFromValue(value)
+  if (!date) return null
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: BUSINESS_TIME_ZONE,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).formatToParts(date)
+
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find(part => part.type === type)?.value ?? ''
+
   return {
-    year: Number(year),
-    month: Number(month),
-    day: Number(day),
-    hour,
-    minute,
+    year: get('year'),
+    month: get('month'),
+    day: get('day'),
+    hour: get('hour'),
+    minute: get('minute'),
   }
 }
 
-export function formatIsoTime(iso: string) {
-  const parts = parseIsoParts(iso)
-  if (!parts) return iso
+export function formatIsoTime(value: string) {
+  const parts = businessParts(value)
+  if (!parts) return value
   return `${parts.hour}:${parts.minute}`
 }
 
-export function formatIsoDate(iso: string) {
-  const parts = parseIsoParts(iso)
-  if (!parts) return iso
-  return `${String(parts.day).padStart(2, '0')}/${String(parts.month).padStart(2, '0')}/${String(parts.year).slice(-2)}`
+export function formatIsoDate(value: string) {
+  const parts = businessParts(value)
+  if (!parts) return value
+  return `${parts.day}/${parts.month}/${parts.year.slice(-2)}`
 }
 
-export function formatIsoDateTime(iso: string) {
-  return `${formatIsoDate(iso)}, ${formatIsoTime(iso)}`
+export function formatIsoDateTime(value: string) {
+  return `${formatIsoDate(value)}, ${formatIsoTime(value)}`
 }
 
-export function formatIsoDateMonthShort(iso: string) {
-  const parts = parseIsoParts(iso)
-  if (!parts) return iso
+export function formatIsoDateMonthShort(value: string) {
+  const date = dateFromValue(value)
+  if (!date) return value
 
-  const date = new Date(parts.year, parts.month - 1, parts.day, 12)
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
-}
-
-export function formatIsoDateLong(iso: string) {
-  const parts = parseIsoParts(iso)
-  if (!parts) return iso
-
-  const date = new Date(parts.year, parts.month - 1, parts.day, 12)
   return date.toLocaleDateString('pt-BR', {
+    timeZone: BUSINESS_TIME_ZONE,
+    day: '2-digit',
+    month: 'short',
+  })
+}
+
+export function formatIsoDateLong(value: string) {
+  const date = dateFromValue(value)
+  if (!date) return value
+
+  return date.toLocaleDateString('pt-BR', {
+    timeZone: BUSINESS_TIME_ZONE,
     weekday: 'long',
     day: '2-digit',
     month: 'long',
   })
 }
 
-export function isoDateKey(iso: string) {
-  return iso.slice(0, 10)
+export function isoDateKey(value: string) {
+  const parts = businessParts(value)
+  if (!parts) return value.slice(0, 10)
+  return `${parts.year}-${parts.month}-${parts.day}`
 }
 
 export function compareIsoDateTime(a: string, b: string) {
